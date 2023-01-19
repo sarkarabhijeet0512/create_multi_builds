@@ -1,5 +1,7 @@
 name: go-build-binary
-on: push
+on: 
+  release:
+    types: [created]
 
 jobs:
   build-matrix:
