@@ -1,5 +1,5 @@
 name: go-build-binary
-on: release
+on: push
 jobs:
   build-matrix:
     name: build Go Binary
