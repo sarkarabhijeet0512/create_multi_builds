@@ -1,34 +1,29 @@
-name: Publish
-
+name: go-build-binary
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [created]
 jobs:
-  publish:
-    name: Publish for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build-matrix:
+    name: build Go Binary
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            artifact_name: mything
-            asset_name: mything-linux-amd64
-          - os: windows-latest
-            artifact_name: mything.exe
-            asset_name: mything-windows-amd64
-          - os: macos-latest
-            artifact_name: mything
-            asset_name: mything-macos-amd64
-
+        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+          - goarch: arm64
+            goos: windows
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --release --locked
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
+    - uses: wangyoucao577/go-release-action@v1.35
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.asset_name }}
-        tag: ${{ github.ref }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        goversion: "https://dl.google.com/go/go1.19.1.linux-amd64.tar.gz"
+        project_path: "./create_multi_builds"
+        binary_name: "create_multi_builds"
+        extra_files: LICENSE README.md
